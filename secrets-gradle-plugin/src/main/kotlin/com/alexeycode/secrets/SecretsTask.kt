@@ -3,6 +3,7 @@ package com.alexeycode.secrets
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -19,6 +20,9 @@ abstract class SecretsTask : DefaultTask() {
     @get:Input
     abstract val keys: ListProperty<String>
 
+    @get:Input
+    abstract val className: Property<String>
+
     @get:OutputFile
     abstract val outputJar: RegularFileProperty
 
@@ -27,20 +31,20 @@ abstract class SecretsTask : DefaultTask() {
         val jarFile = outputJar.get().asFile
         jarFile.parentFile.mkdirs()
         JarOutputStream(FileOutputStream(jarFile)).use { jos ->
-            val entry = JarEntry("com/alexeycode/secrets/Secrets.class")
+            val entry = JarEntry("${className.get()}.class")
             jos.putNextEntry(entry)
-            jos.write(generateByteCode(keys.get()))
+            jos.write(generateSecretsClass(className.get(), keys.get()))
             jos.closeEntry()
         }
     }
 
-    private fun generateByteCode(keys: List<String>): ByteArray {
+    private fun generateSecretsClass(name: String, keys: List<String>): ByteArray {
         val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
 
         cw.visit(
             Opcodes.V1_8,
             Opcodes.ACC_PUBLIC or Opcodes.ACC_FINAL,
-            "com/alexeycode/secrets/Secrets",
+            name,
             null,
             "java/lang/Object",
             null

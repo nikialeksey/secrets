@@ -11,14 +11,16 @@ import javax.inject.Inject
 class SecretsPlugin(
     private val extensionName: String,
     private val taskPrefix: String,
-    private val taskSuffix: String
+    private val taskSuffix: String,
+    private val secretsClassName: String,
 ) : Plugin<Project> {
 
     @Inject
     constructor() : this(
         extensionName = "secrets",
         taskPrefix = "generate",
-        taskSuffix = "secrets"
+        taskSuffix = "secrets",
+        secretsClassName = "com/alexeycode/secrets/Secrets"
     )
 
     override fun apply(target: Project) {
@@ -47,6 +49,7 @@ class SecretsPlugin(
                 "$taskPrefix${variant.name.capitalized()}${taskSuffix.capitalized()}",
                 SecretsTask::class.java
             ) { task ->
+                task.className.set(secretsClassName)
                 task.keys.set(secretsExtension.secrets.keys.toList())
                 task.outputJar.set(
                     target.layout.buildDirectory.file("generated/secrets/${variant.name}/secrets.jar")
