@@ -4,7 +4,7 @@ plugins {
     id("com.gradle.plugin-publish") version "2.1.0"
 }
 
-group = "com.alexeycode.secrets"
+group = "com.alexeycode"
 version = "0.0.1"
 
 dependencies {
