@@ -8,9 +8,9 @@ group = "com.alexeycode"
 version = "0.0.1"
 
 dependencies {
-    implementation("com.android.tools.build:gradle-api:9.1.0")
-    implementation("org.ow2.asm:asm:9.9.1")
-    implementation("org.apache.commons:commons-math3:3.6.1")
+    implementation(libs.gradle.api)
+    implementation(libs.asm)
+    implementation(libs.commons.math3)
 }
 
 gradlePlugin {

@@ -1,10 +1,16 @@
 [versions]
 agp = "9.1.0"
+asm = "9.9.1"
+commonsMath3 = "3.6.1"
+gradleApi = "9.1.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 
 [libraries]
+asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
+commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commonsMath3" }
+gradle-api = { module = "com.android.tools.build:gradle-api", version.ref = "gradleApi" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

@@ -4,14 +4,17 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
+    }
+    versionCatalogs {
+        create("libs") {
+            // relative path to the version catalog file holding your tool versions
+            from(files("./../gradle/libs.versions.toml")) // load versions
+        }
     }
 }
 
