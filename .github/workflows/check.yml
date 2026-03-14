@@ -1,0 +1,31 @@
+name: 'Run necessary checks'
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    types: [ opened, reopened ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v6
+
+      - name: 'Setup Prerequisites'
+        uses: ./.github/actions/setup-prerequisites
+
+      - name: 'Setup Android SDK'
+        uses: android-actions/setup-android@v3
+
+      - name: 'Run unit tests'
+        run: ./gradlew testDebugUnitTest
+
+      - name: 'Run instrumentation test'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          script: ./gradlew connectedDebugAndroidTest

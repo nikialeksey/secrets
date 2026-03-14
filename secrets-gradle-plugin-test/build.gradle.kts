@@ -4,8 +4,8 @@ plugins {
 }
 
 secrets {
-    key("secret1") { "hello, world 1" }
-    key("secret2") { "hello, world 2" }
+    key("secret1") { "hello, secret 1" }
+    key("secret2") { "hello, secret 2" }
 }
 
 android {
@@ -46,10 +46,6 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

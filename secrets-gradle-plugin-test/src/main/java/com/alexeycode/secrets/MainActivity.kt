@@ -1,10 +1,10 @@
 package com.alexeycode.secrets
 
+import android.app.Activity
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import com.alexeycode.secrets.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -14,7 +14,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Example of a call to a native method
-        binding.sampleText.text = Secrets.secret2
+        binding.sampleText.text = Secrets.secret1
     }
 }
