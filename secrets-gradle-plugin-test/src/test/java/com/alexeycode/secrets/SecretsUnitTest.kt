@@ -6,6 +6,6 @@ import org.junit.Test
 class SecretsUnitTest {
     @Test
     fun `secrets are not available in unit tests`() {
-        Assert.assertEquals(null, Secrets.secret1)
+        Assert.assertEquals(null, Secrets.getSecret1())
     }
 }

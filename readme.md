@@ -1,5 +1,7 @@
 # Secrets
 
+[![Build and tests](https://github.com/nikialeksey/secrets/actions/workflows/check.yml/badge.svg)](https://github.com/nikialeksey/secrets/actions/workflows/check.yml)
+
 This plugin allows you to store secret keys (for example, API keys) 
 in the resulting binary without worrying about static vulnerability 
 analyzers.
@@ -21,7 +23,7 @@ secrets {
 Then secrets are available in the code by 
 reference:
 ```kotlin
-com.alexeycode.secrets.Secrets.secret1
+com.alexeycode.secrets.Secrets.getSecret1()
 ```
 
 ## Motivation

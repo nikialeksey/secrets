@@ -6,6 +6,7 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -28,12 +29,12 @@ abstract class SecretsTask : DefaultTask() {
         JarOutputStream(FileOutputStream(jarFile)).use { jos ->
             val entry = JarEntry("com/alexeycode/secrets/Secrets.class")
             jos.putNextEntry(entry)
-            jos.write(generateByteCode())
+            jos.write(generateByteCode(keys.get()))
             jos.closeEntry()
         }
     }
 
-    private fun generateByteCode(): ByteArray {
+    private fun generateByteCode(keys: List<String>): ByteArray {
         val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
 
         cw.visit(
@@ -45,14 +46,20 @@ abstract class SecretsTask : DefaultTask() {
             null
         )
 
-        for (key in keys.get()) {
-            cw.visitField(
+        for (key in keys) {
+            val mv = cw.visitMethod(
                 Opcodes.ACC_PUBLIC or Opcodes.ACC_STATIC,
-                key,
-                "Ljava/lang/String;",
-                null,  // signature
-                null   // no value assigned => null
-            ).visitEnd()
+                "get${key.capitalized()}",
+                "()Ljava/lang/String;",
+                null,
+                null
+            )
+
+            mv.visitCode()
+            mv.visitInsn(Opcodes.ACONST_NULL)
+            mv.visitInsn(Opcodes.ARETURN)
+            mv.visitMaxs(1, 0)
+            mv.visitEnd()
         }
 
         // default constructor

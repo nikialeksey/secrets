@@ -23,7 +23,6 @@ abstract class SecretsClassVisitorFactory : AsmClassVisitorFactory<SecretsClassV
     ): ClassVisitor {
         val secrets = this.parameters.get().secrets.get()
         return object : ClassVisitor(Opcodes.ASM9, nextClassVisitor) {
-            private var clinitVisited = false
 
             override fun visitMethod(
                 access: Int,
@@ -31,50 +30,32 @@ abstract class SecretsClassVisitorFactory : AsmClassVisitorFactory<SecretsClassV
                 descriptor: String?,
                 signature: String?,
                 exceptions: Array<out String>?
-            ): MethodVisitor? {
-                var mv = super.visitMethod(access, name, descriptor, signature, exceptions)
+            ): MethodVisitor {
+                val mv = super.visitMethod(access, name, descriptor, signature, exceptions)
+                if (name == null) return mv
 
-                if (name == "<clinit>") {
-                    clinitVisited = true
-                    mv = object : MethodVisitor(Opcodes.ASM9, mv) {
-                        override fun visitCode() {
-                            super.visitCode()
-                            injectSecrets(this, secrets)
+                if (name.startsWith("get") && descriptor == "()Ljava/lang/String;") {
+                    val key = name.removePrefix("get").replaceFirstChar { it.lowercaseChar() }
+                    val value = secrets[key]
+                    if (value != null) {
+                        return object : MethodVisitor(Opcodes.ASM9, mv) {
+
+                            override fun visitCode() {
+                                super.visitCode()
+
+                                mv.visitLdcInsn(value)
+                                mv.visitInsn(Opcodes.ARETURN)
+
+                                mv.visitMaxs(1, 0)
+                                mv.visitEnd()
+                            }
+
+                            override fun visitInsn(opcode: Int) {}
                         }
                     }
                 }
+
                 return mv
-            }
-
-            override fun visitEnd() {
-                if (!clinitVisited) {
-                    val mv = cv.visitMethod(
-                        Opcodes.ACC_STATIC,
-                        "<clinit>",
-                        "()V",
-                        null,
-                        null
-                    )
-                    mv.visitCode()
-                    injectSecrets(mv, secrets)
-                    mv.visitInsn(Opcodes.RETURN)
-                    mv.visitMaxs(1, 0)
-                    mv.visitEnd()
-                }
-                super.visitEnd()
-            }
-
-            private fun injectSecrets(mv: MethodVisitor, secrets: Map<String, String>) {
-                for ((key, value) in secrets) {
-                    mv.visitLdcInsn(value)
-
-                    mv.visitFieldInsn(
-                        Opcodes.PUTSTATIC,
-                        "com/alexeycode/secrets/Secrets",
-                        key,
-                        "Ljava/lang/String;"
-                    )
-                }
             }
         }
     }

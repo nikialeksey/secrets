@@ -10,6 +10,6 @@ import org.junit.runner.RunWith
 class SecretsInstrumentedTest {
     @Test
     fun secretsAreAvailableInRuntime() {
-        Assert.assertEquals("hello, secret 1", Secrets.secret1)
+        Assert.assertEquals("hello, secret 1", Secrets.getSecret1())
     }
 }
