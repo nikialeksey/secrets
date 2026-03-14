@@ -1,0 +1,19 @@
+name: 'Publish gradle plugin'
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v6
+
+      - name: 'Setup Prerequisites'
+        uses: ./.github/actions/setup-prerequisites
+
+      - name: 'Publish'
+        run: ./gradlew :secrets-gradle-plugin:publishPlugins -Pgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} -Pgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }}
