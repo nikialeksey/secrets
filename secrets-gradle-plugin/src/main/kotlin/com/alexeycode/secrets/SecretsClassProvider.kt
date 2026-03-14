@@ -1,44 +1,16 @@
 package com.alexeycode.secrets
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.io.FileOutputStream
-import java.util.jar.JarEntry
-import java.util.jar.JarOutputStream
+import javax.inject.Provider
 
-abstract class SecretsTask : DefaultTask() {
-
-    @get:Input
-    abstract val keys: ListProperty<String>
-
-    @get:Input
-    abstract val className: Property<String>
-
-    @get:OutputFile
-    abstract val outputJar: RegularFileProperty
-
-    @TaskAction
-    fun generate() {
-        val jarFile = outputJar.get().asFile
-        jarFile.parentFile.mkdirs()
-        JarOutputStream(FileOutputStream(jarFile)).use { jos ->
-            val entry = JarEntry("${className.get()}.class")
-            jos.putNextEntry(entry)
-            jos.write(generateSecretsClass(className.get(), keys.get()))
-            jos.closeEntry()
-        }
-    }
-
-    private fun generateSecretsClass(name: String, keys: List<String>): ByteArray {
+class SecretsClassProvider(
+    private val name: String,
+    private val keys: List<String>
+) : Provider<ByteArray> {
+    override fun get(): ByteArray {
         val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
 
         cw.visit(

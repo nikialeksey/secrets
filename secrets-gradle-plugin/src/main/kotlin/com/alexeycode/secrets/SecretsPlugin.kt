@@ -47,7 +47,7 @@ class SecretsPlugin(
 
             val generateSecretsTask = target.tasks.register(
                 "$taskPrefix${variant.name.capitalized()}${taskSuffix.capitalized()}",
-                SecretsTask::class.java
+                GenerateSecretsJarTask::class.java
             ) { task ->
                 task.className.set(secretsClassName)
                 task.keys.set(secretsExtension.secrets.keys.toList())
@@ -62,7 +62,7 @@ class SecretsPlugin(
             )
 
             variant.instrumentation.transformClassesWith(
-                SecretsClassVisitorFactory::class.java,
+                SecretsInstrumentationFactory::class.java,
                 InstrumentationScope.ALL
             ) { params ->
                 params.secrets.set(secretsExtension.secrets)

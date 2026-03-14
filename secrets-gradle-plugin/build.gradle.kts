@@ -11,6 +11,7 @@ dependencies {
     implementation(libs.gradle.api)
     implementation(libs.asm)
     implementation(libs.commons.math3)
+    testImplementation(libs.junit)
 }
 
 gradlePlugin {
