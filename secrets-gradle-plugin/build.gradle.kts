@@ -8,10 +8,12 @@ group = "com.alexeycode"
 version = "0.0.1"
 
 dependencies {
-    implementation(libs.gradle.api)
+    implementation(libs.android.gradle.api)
     implementation(libs.asm)
     implementation(libs.commons.math3)
     testImplementation(libs.junit)
+    testImplementation(libs.android.gradle)
+    testImplementation(libs.smali.dexlib2)
 }
 
 gradlePlugin {
