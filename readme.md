@@ -1,6 +1,8 @@
 # Secrets
 
-[![Build and tests](https://github.com/nikialeksey/secrets/actions/workflows/check.yml/badge.svg)](https://github.com/nikialeksey/secrets/actions/workflows/check.yml)
+[![Build and tests][build-status-badge]][build-status-link]
+
+[![Gradle plugin version][gradle-plugin-badge]][gradle-plugin-link]
 
 This plugin allows you to store secret keys (for example, API keys) 
 in the resulting binary without worrying about static vulnerability 
@@ -45,3 +47,8 @@ I started thinking about how this could be made harder. How can we store
 keys in a binary in a way that makes them difficult to extract?
 
 As an experiment, I created this Gradle plugin.
+
+[build-status-badge]: https://github.com/nikialeksey/secrets/actions/workflows/check.yml/badge.svg
+[build-status-link]: https://github.com/nikialeksey/secrets/actions/workflows/check.yml
+[gradle-plugin-badge]: https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/com/alexeycode/secrets-plugin-gradle/maven-metadata.xml.svg?label=plugin
+[gradle-plugin-link]: https://plugins.gradle.org/plugin/com.alexeycode.secrets
