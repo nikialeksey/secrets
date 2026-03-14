@@ -48,6 +48,16 @@ keys in a binary in a way that makes them difficult to extract?
 
 As an experiment, I created this Gradle plugin.
 
+## Why is this a secure approach?
+
+Secrets are stored in the binary in an encoded format. In fact, 
+the plugin does not use string literals at all - only algorithms 
+that reconstruct secret values at runtime.
+
+Moreover, as a developer you will not be able to see the secret 
+values in the IDE when decompiling the Secrets class, because 
+they are inserted into the bytecode at compile time.
+
 [build-status-badge]: https://github.com/nikialeksey/secrets/actions/workflows/check.yml/badge.svg
 [build-status-link]: https://github.com/nikialeksey/secrets/actions/workflows/check.yml
 [gradle-plugin-badge]: https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/com/alexeycode/secrets-plugin-gradle/maven-metadata.xml.svg?label=plugin
