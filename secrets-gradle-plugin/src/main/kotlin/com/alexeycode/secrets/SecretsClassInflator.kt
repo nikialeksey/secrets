@@ -11,6 +11,7 @@ import kotlin.collections.iterator
 
 class SecretsClassInflator(
     private val secrets: Map<String, String>,
+    private val className: String,
     nextClassVisitor: ClassVisitor
 ) : ClassVisitor(Opcodes.ASM9, nextClassVisitor) {
 
@@ -77,7 +78,7 @@ class SecretsClassInflator(
 
                         mv.visitMethodInsn(
                             Opcodes.INVOKESTATIC,
-                            "com/alexeycode/secrets/Secrets",
+                            className,
                             cMethod,
                             "(I)C",
                             false

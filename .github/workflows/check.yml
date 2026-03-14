@@ -21,7 +21,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: 'Run unit tests'
-        run: ./gradlew --no-daemon :secrets-gradle-plugin-test:testDebugUnitTest
+        run: ./gradlew --no-daemon :secrets-gradle-plugin:test :secrets-gradle-plugin-test:testDebugUnitTest
 
 #      https://github.com/ReactiveCircus/android-emulator-runner?tab=readme-ov-file#running-hardware-accelerated-emulators-on-linux-runners
       - name: 'Enable KVM group perms'

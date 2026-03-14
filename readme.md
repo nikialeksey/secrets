@@ -23,9 +23,9 @@ secrets {
 ```
 
 Then secrets are available in the code by 
-reference:
+reference (class will be generated in your default package):
 ```kotlin
-com.alexeycode.secrets.Secrets.getSecret1()
+Secrets.getSecret1()
 ```
 
 ## Motivation
