@@ -14,6 +14,6 @@ class MainActivity : Activity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.sampleText.text = Secrets.getSecret1()
+        binding.sampleText.text = Secrets.getSecret3()
     }
 }

@@ -1,11 +1,23 @@
 package com.alexeycode.secrets
 
 open class SecretsExtension {
-    val secrets = mutableMapOf<String, String>()
+    val secretsContainer = SecretsContainer()
+    val flavorsSecrets = mutableMapOf<String, SecretsContainer>()
 
     fun key(name: String, value: () -> String) {
-        secrets[name] = value()
+        secretsContainer.key(name, value)
     }
 
+    fun flavor(name: String, builder: SecretsContainer.() -> Unit) {
+        val flavorContainer = flavorsSecrets.getOrPut(name) { SecretsContainer() }
+        flavorContainer.builder()
+    }
 
+    class SecretsContainer {
+        val secrets = mutableMapOf<String, String>()
+
+        fun key(name: String, value: () -> String) {
+            secrets[name] = value()
+        }
+    }
 }

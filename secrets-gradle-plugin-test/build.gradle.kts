@@ -6,6 +6,12 @@ plugins {
 secrets {
     key("secret1") { "hello, secret 1" }
     key("secret2") { "hello, secret 2" }
+    flavor("production") {
+        key("secret3") { "hello, secret prod" }
+    }
+    flavor("development") {
+        key("secret3") { "hello, secret dev" }
+    }
 }
 
 android {
@@ -41,8 +47,19 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     buildFeatures {
         viewBinding = true
+    }
+
+    flavorDimensions.add("env")
+    productFlavors {
+        create("production") {
+            dimension = "env"
+        }
+        create("development") {
+            dimension = "env"
+        }
     }
 }
 

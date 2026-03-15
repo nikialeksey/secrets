@@ -50,6 +50,7 @@ class SecretsPlugin(
 
     private fun configureAndroidVariant(target: Project, variant: Variant) {
         val secretsExtension = target.extensions.getByType(SecretsExtension::class.java)
+        val secrets = getSecretsForVariant(secretsExtension, variant)
         val commonExtension = target.extensions.getByType(CommonExtension::class.java)
         val className = commonExtension.namespace?.let { namespace ->
             "${namespace.replace('.', '/')}/Secrets"
@@ -60,7 +61,7 @@ class SecretsPlugin(
             GenerateSecretsJarTask::class.java
         ) { task ->
             task.className.set(className)
-            task.keys.set(secretsExtension.secrets.keys.toList())
+            task.keys.set(secrets.keys.toList())
             task.outputJar.set(
                 target.layout.buildDirectory.file(
                     "generated/secrets/${variant.name}/secrets.jar"
@@ -77,7 +78,7 @@ class SecretsPlugin(
             SecretsClassInflatorFactory::class.java,
             InstrumentationScope.ALL
         ) { params ->
-            params.secrets.set(secretsExtension.secrets)
+            params.secrets.set(secrets)
             params.className.set(className)
             params.inflatableClassName.set(className.replace('/', '.'))
         }
@@ -85,5 +86,21 @@ class SecretsPlugin(
         variant.instrumentation.setAsmFramesComputationMode(
             FramesComputationMode.COMPUTE_FRAMES_FOR_INSTRUMENTED_METHODS
         )
+    }
+
+    private fun getSecretsForVariant(
+        secretsExtension: SecretsExtension,
+        variant: Variant
+    ): Map<String, String> {
+        val result = secretsExtension.secretsContainer.secrets.toMutableMap()
+
+        variant.flavorName?.let { flavorName ->
+            secretsExtension.flavorsSecrets[flavorName]?.let { flavorSecrets ->
+                result.putAll(flavorSecrets.secrets)
+            }
+        }
+        secretsExtension.flavorsSecrets[variant.flavorName]
+
+        return result.toMap()
     }
 }
