@@ -1,13 +1,11 @@
 package com.alexeycode.secrets
 
-import org.apache.commons.math3.analysis.interpolation.NevilleInterpolator
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.iterator
+import java.math.BigDecimal
+import java.math.MathContext
 
 class SecretsClassInflator(
     private val secrets: Map<String, String>,
@@ -29,10 +27,6 @@ class SecretsClassInflator(
             val key = name.removePrefix("get").replaceFirstChar { it.lowercaseChar() }
             val value = secrets[key]
             if (value != null) {
-
-                val cMethod = name + "C"
-                val len = value.length
-
                 return object : MethodVisitor(Opcodes.ASM9, mv) {
 
                     override fun visitInsn(opcode: Int) { }
@@ -49,6 +43,9 @@ class SecretsClassInflator(
                     override fun visitMultiANewArrayInsn(descriptor: String?, numDimensions: Int) {}
 
                     override fun visitEnd() {
+                        val cMethod = name + "C"
+                        val len = value.length
+
                         mv.visitCode()
 
                         val loopStart = Label()
@@ -125,28 +122,71 @@ class SecretsClassInflator(
             // Thanks, Joshua!
             // https://x.com/nikialeksey/status/1600598026678149120
             val valueLength = value.length
-            val x = DoubleArray(valueLength + 1)
-            val y = DoubleArray(valueLength + 1)
+            val x = Array<BigDecimal>(valueLength + 1) { BigDecimal.ZERO }
+            val y = Array<BigDecimal>(valueLength + 1) { BigDecimal.ZERO }
             for (i in 0 until valueLength) {
-                x[i] = i.toDouble()
-                y[i] = value[i].code.toDouble()
+                x[i] = i.toBigDecimal()
+                y[i] = value[i].code.toBigDecimal()
             }
-            x[valueLength] = valueLength.toDouble()
-            y[valueLength] = 0.0
+            x[valueLength] = valueLength.toBigDecimal()
+            y[valueLength] = BigDecimal.ZERO
 
-            val interpolator = NevilleInterpolator()
-            val function = interpolator.interpolate(x, y)
-            val coeff = function.getCoefficients()
+            val mc = MathContext(50)
+            val coeff = computeCoefficients(x, y, mc)
 
-            generateCoeffMethod(cv, key, coeff)
+            generateCoeffMethod(cv, key, coeff, mc.precision)
         }
         super.visitEnd()
+    }
+
+    // from NevilleInterpolator (Apache Commons math)
+    fun computeCoefficients(
+        x: Array<BigDecimal>,
+        y: Array<BigDecimal>,
+        mc: MathContext
+    ): Array<BigDecimal> {
+        val n = x.size
+        val coefficients = Array<BigDecimal>(n) { BigDecimal.ZERO }
+        val c = Array<BigDecimal>(n + 1) { BigDecimal.ZERO }
+        c[0] = BigDecimal.ONE
+
+        for (i in 0..<n) {
+            for (j in i downTo 1) {
+                c[j] = c[j - 1].subtract(c[j].multiply(x[i], mc), mc)
+            }
+            c[0] = c[0].multiply(x[i].negate(), mc)
+            c[i + 1] = BigDecimal.ONE
+        }
+
+        val tc = Array<BigDecimal>(n) { BigDecimal.ZERO }
+
+        for (i in 0..<n) {
+            var d = BigDecimal.ONE
+            for (j in 0..<n) {
+                if (i != j) {
+                    d = d.multiply(x[i].subtract(x[j], mc), mc)
+                }
+            }
+
+            val t = y[i].divide(d, mc)
+
+            tc[n - 1] = c[n]
+            coefficients[n - 1] = coefficients[n - 1].add(t.multiply(tc[n - 1], mc), mc)
+
+            for (j in n - 2 downTo 0) {
+                tc[j] = c[j + 1].add(tc[j + 1].multiply(x[i], mc), mc)
+                coefficients[j] = coefficients[j].add(t.multiply(tc[j], mc), mc)
+            }
+        }
+
+        return coefficients
     }
 
     private fun generateCoeffMethod(
         cv: ClassVisitor,
         name: String,
-        coeff: DoubleArray
+        coeff: Array<BigDecimal>,
+        precision: Int
     ) {
         val mv = cv.visitMethod(
             Opcodes.ACC_PUBLIC or Opcodes.ACC_STATIC,
@@ -158,22 +198,122 @@ class SecretsClassInflator(
 
         mv.visitCode()
 
-        mv.visitLdcInsn(coeff.last())
+        // MathContext mc = new MathContext(precision)
+        mv.visitTypeInsn(Opcodes.NEW, "java/math/MathContext")
+        mv.visitInsn(Opcodes.DUP)
+        mv.visitLdcInsn(precision)
+        mv.visitMethodInsn(
+            Opcodes.INVOKESPECIAL,
+            "java/math/MathContext",
+            "<init>",
+            "(I)V",
+            false
+        )
+        mv.visitVarInsn(Opcodes.ASTORE, 1)
+
+        // BigDecimal result = new BigDecimal(coeff.last())
+        mv.visitTypeInsn(Opcodes.NEW, "java/math/BigDecimal")
+        mv.visitInsn(Opcodes.DUP)
+        mv.visitLdcInsn(coeff.last().toString())
+        mv.visitMethodInsn(
+            Opcodes.INVOKESPECIAL,
+            "java/math/BigDecimal",
+            "<init>",
+            "(Ljava/lang/String;)V",
+            false
+        )
+        mv.visitVarInsn(Opcodes.ASTORE, 2)
+
         for (i in coeff.size - 2 downTo 0) {
-            mv.visitVarInsn(Opcodes.ILOAD, 0) // i
-            mv.visitInsn(Opcodes.I2D)         // double(i)
-            mv.visitInsn(Opcodes.DMUL)        // result * i
-            mv.visitLdcInsn(coeff[i])         // coeff[i]
-            mv.visitInsn(Opcodes.DADD)        // coeff[i] + i * result
+
+            // result.multiply(BigDecimal.valueOf(i), mc)
+
+            mv.visitVarInsn(Opcodes.ALOAD, 2)
+
+            mv.visitVarInsn(Opcodes.ILOAD, 0)
+            mv.visitInsn(Opcodes.I2L)
+
+            mv.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                "java/math/BigDecimal",
+                "valueOf",
+                "(J)Ljava/math/BigDecimal;",
+                false
+            )
+
+            mv.visitVarInsn(Opcodes.ALOAD, 1)
+
+            mv.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                "java/math/BigDecimal",
+                "multiply",
+                "(Ljava/math/BigDecimal;Ljava/math/MathContext;)Ljava/math/BigDecimal;",
+                false
+            )
+
+            // + coeff[i]
+
+            mv.visitTypeInsn(Opcodes.NEW, "java/math/BigDecimal")
+            mv.visitInsn(Opcodes.DUP)
+            mv.visitLdcInsn(coeff[i].toString())
+            mv.visitMethodInsn(
+                Opcodes.INVOKESPECIAL,
+                "java/math/BigDecimal",
+                "<init>",
+                "(Ljava/lang/String;)V",
+                false
+            )
+
+            mv.visitVarInsn(Opcodes.ALOAD, 1)
+
+            mv.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                "java/math/BigDecimal",
+                "add",
+                "(Ljava/math/BigDecimal;Ljava/math/MathContext;)Ljava/math/BigDecimal;",
+                false
+            )
+
+            mv.visitVarInsn(Opcodes.ASTORE, 2)
         }
 
-        mv.visitLdcInsn(0.5)
-        mv.visitInsn(Opcodes.DADD)
+        // result = result + 0.5
 
-        mv.visitInsn(Opcodes.D2I)
+        mv.visitVarInsn(Opcodes.ALOAD, 2)
+
+        mv.visitTypeInsn(Opcodes.NEW, "java/math/BigDecimal")
+        mv.visitInsn(Opcodes.DUP)
+        mv.visitLdcInsn("0.5")
+        mv.visitMethodInsn(
+            Opcodes.INVOKESPECIAL,
+            "java/math/BigDecimal",
+            "<init>",
+            "(Ljava/lang/String;)V",
+            false
+        )
+
+        mv.visitVarInsn(Opcodes.ALOAD, 1)
+
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            "java/math/BigDecimal",
+            "add",
+            "(Ljava/math/BigDecimal;Ljava/math/MathContext;)Ljava/math/BigDecimal;",
+            false
+        )
+
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            "java/math/BigDecimal",
+            "intValue",
+            "()I",
+            false
+        )
+
         mv.visitInsn(Opcodes.IRETURN)
 
-        mv.visitMaxs(4, 1)
+        mv.visitMaxs(5, 3)
         mv.visitEnd()
     }
+
 }
