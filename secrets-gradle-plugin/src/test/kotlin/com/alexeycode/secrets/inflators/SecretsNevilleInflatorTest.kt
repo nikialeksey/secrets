@@ -1,16 +1,19 @@
-package com.alexeycode.secrets
+package com.alexeycode.secrets.inflators
 
+import com.alexeycode.secrets.SecretsClassProvider
+import com.alexeycode.secrets.loadAsClass
+import com.alexeycode.secrets.transform
 import org.junit.Assert
 import org.junit.Test
 
-class SecretsClassInflatorTest {
+class SecretsNevilleInflatorTest {
     @Test
     fun inflateSimpleSecretAndReadIt() {
         val className = "com/example/Example"
         val secrets = mapOf("key" to "value")
         val classBytes = SecretsClassProvider(className, secrets.keys.toList()).get()
         val transformed = classBytes
-            .transform { SecretsClassInflator(secrets, className, it) }
+            .transform { SecretsNevilleInflator(secrets, className, it) }
             .loadAsClass()
 
         val method = transformed.getDeclaredMethod("getKey")
@@ -26,7 +29,7 @@ class SecretsClassInflatorTest {
         val secrets = mapOf("key" to "hello, secret prod")
         val classBytes = SecretsClassProvider(className, secrets.keys.toList()).get()
         val transformed = classBytes
-            .transform { SecretsClassInflator(secrets, className, it) }
+            .transform { SecretsNevilleInflator(secrets, className, it) }
             .loadAsClass()
 
         val method = transformed.getDeclaredMethod("getKey")
@@ -43,7 +46,7 @@ class SecretsClassInflatorTest {
         val secrets = mapOf("key" to secret)
         val classBytes = SecretsClassProvider(className, secrets.keys.toList()).get()
         val transformed = classBytes
-            .transform { SecretsClassInflator(secrets, className, it) }
+            .transform { SecretsNevilleInflator(secrets, className, it) }
             .loadAsClass()
 
         val method = transformed.getDeclaredMethod("getKey")

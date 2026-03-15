@@ -1,4 +1,4 @@
-package com.alexeycode.secrets
+package com.alexeycode.secrets.inflators
 
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
@@ -6,8 +6,9 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import java.math.BigDecimal
 import java.math.MathContext
+import kotlin.collections.iterator
 
-class SecretsClassInflator(
+class SecretsNevilleInflator(
     private val secrets: Map<String, String>,
     private val className: String,
     nextClassVisitor: ClassVisitor

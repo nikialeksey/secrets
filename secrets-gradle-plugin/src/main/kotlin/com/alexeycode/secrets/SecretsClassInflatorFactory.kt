@@ -1,5 +1,6 @@
 package com.alexeycode.secrets
 
+import com.alexeycode.secrets.inflators.SecretsNevilleInflator
 import com.android.build.api.instrumentation.AsmClassVisitorFactory
 import com.android.build.api.instrumentation.ClassContext
 import com.android.build.api.instrumentation.ClassData
@@ -18,7 +19,7 @@ abstract class SecretsClassInflatorFactory : AsmClassVisitorFactory<SecretsClass
         val params = this.parameters.get()
         val secrets = params.secrets.get()
         val className = parameters.get().className.get()
-        return SecretsClassInflator(secrets, className, nextClassVisitor)
+        return SecretsNevilleInflator(secrets, className, nextClassVisitor)
     }
 
     override fun isInstrumentable(classData: ClassData): Boolean {
