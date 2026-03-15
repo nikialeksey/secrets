@@ -19,10 +19,10 @@ plugins {
 secrets {
     key("secret1") { "value1" } // do not store secrets in build files
     key("secret2") { "value2" } // use environment variables, or properties
-    flavor("production") { // flavor 'production'
+    flavor("production") { // will be applied only for specific flavor
         key("secret3") { "hello, secret prod" }
     }
-    flavor("development") { // flavor 'development'
+    flavor("development") {
         key("secret3") { "hello, secret dev" }
     }
 }
