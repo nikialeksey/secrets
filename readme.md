@@ -37,7 +37,7 @@ const val API_KEY = "your api key"
 ```
 or in resources like this:
 ```xml
-<string name"api_key">your api key</string>
+<string name="api_key">your api key</string>
 ```
 This way of storing keys is quite simple, but it also makes them 
 easy to extract with basic static analysis tools, since the keys 
@@ -50,9 +50,14 @@ As an experiment, I created this Gradle plugin.
 
 ## Why is this a secure approach?
 
+Okay, it is not 100% secure, of course. Deep static analysis
+or runtime investigation of your binary will be able to find 
+your secrets. However, automatic static analyzers will not 
+find anything most probably.
+
 Secrets are stored in the binary in an encoded format. In fact, 
 the plugin does not use string literals at all - only algorithms 
-that reconstruct secret values at runtime.
+that **reconstruct** secret values at runtime.
 
 Moreover, as a developer you will not be able to see the secret 
 values in the IDE when decompiling the Secrets class, because 
