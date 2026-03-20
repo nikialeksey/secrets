@@ -7,9 +7,9 @@ open class SecretsExtension {
     /**
      * Secrets hardening method.
      *
-     * [SecretsHardeningMethod.NEVILLE] by default.
+     * [SecretsHardeningMethod.ZLIB] by default.
      */
-    var method: SecretsHardeningMethod = SecretsHardeningMethod.NEVILLE
+    var method: SecretsHardeningMethod = SecretsHardeningMethod.ZLIB
 
     /**
      * Add secret [value] with [key].

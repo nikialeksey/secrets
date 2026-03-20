@@ -14,7 +14,7 @@ secrets {
     flavor("development") {
         key("secret3") { "hello, secret dev" }
     }
-    method = SecretsHardeningMethod.NONE
+    method = SecretsHardeningMethod.ZLIB
 }
 
 android {

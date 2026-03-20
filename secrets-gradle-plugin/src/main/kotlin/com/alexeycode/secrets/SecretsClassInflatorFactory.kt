@@ -2,6 +2,7 @@ package com.alexeycode.secrets
 
 import com.alexeycode.secrets.inflators.SecretsNevilleInflator
 import com.alexeycode.secrets.inflators.SecretsSimpleInflator
+import com.alexeycode.secrets.inflators.SecretsZlibInflator
 import com.android.build.api.instrumentation.AsmClassVisitorFactory
 import com.android.build.api.instrumentation.ClassContext
 import com.android.build.api.instrumentation.ClassData
@@ -24,6 +25,7 @@ abstract class SecretsClassInflatorFactory : AsmClassVisitorFactory<SecretsClass
         return when (method) {
             SecretsHardeningMethod.NONE -> SecretsSimpleInflator(secrets, nextClassVisitor)
             SecretsHardeningMethod.NEVILLE -> SecretsNevilleInflator(secrets, className, nextClassVisitor)
+            SecretsHardeningMethod.ZLIB -> SecretsZlibInflator(secrets, className, nextClassVisitor)
         }
     }
 

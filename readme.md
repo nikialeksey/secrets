@@ -93,5 +93,5 @@ they are inserted into the bytecode at compile time.
 
 [build-status-badge]: https://github.com/nikialeksey/secrets/actions/workflows/check.yml/badge.svg
 [build-status-link]: https://github.com/nikialeksey/secrets/actions/workflows/check.yml
-[gradle-plugin-badge]: https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/com/alexeycode/secrets-plugin-gradle/maven-metadata.xml.svg?label=plugin
+[gradle-plugin-badge]: https://img.shields.io/gradle-plugin-portal/v/com.alexeycode.secrets
 [gradle-plugin-link]: https://plugins.gradle.org/plugin/com.alexeycode.secrets
