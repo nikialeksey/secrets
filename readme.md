@@ -19,12 +19,6 @@ plugins {
 secrets {
     key("secret1") { "value1" } // do not store secrets in build files
     key("secret2") { "value2" } // use environment variables, or properties
-    flavor("production") { // will be applied only for specific flavor
-        key("secret3") { "hello, secret prod" }
-    }
-    flavor("development") {
-        key("secret3") { "hello, secret dev" }
-    }
 }
 ```
 
@@ -33,6 +27,34 @@ reference (class will be generated in your default package):
 ```kotlin
 Secrets.getSecret1()
 ```
+
+### Secrets for product flavors
+```kotlin
+secrets {
+    key("commonSecret") { "..." }
+    flavor("production") { // will be applied only for specific flavor name
+        key("flavorSecret") { "hello, secret prod" }
+    }
+    flavor("development") {
+        key("flavorSecret") { "hello, secret dev" }
+    }
+}
+
+android {
+    ...
+    flavorDimensions.add("env")
+    productFlavors {
+        create("production") {
+            dimension = "env"
+        }
+        create("development") {
+            dimension = "env"
+        }
+    }
+}
+```
+In that case `Secrets.getFlavorSecret()` will return different result 
+depends on a build flavor.
 
 ## Motivation
 Almost every Android application contains API keys. We use them for 

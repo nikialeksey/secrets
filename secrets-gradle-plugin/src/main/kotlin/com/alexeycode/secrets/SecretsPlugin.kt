@@ -81,6 +81,7 @@ class SecretsPlugin(
             params.secrets.set(secrets)
             params.className.set(className)
             params.inflatableClassName.set(className.replace('/', '.'))
+            params.method.set(secretsExtension.method)
         }
 
         variant.instrumentation.setAsmFramesComputationMode(

@@ -1,6 +1,7 @@
 package com.alexeycode.secrets
 
 import com.alexeycode.secrets.inflators.SecretsNevilleInflator
+import com.alexeycode.secrets.inflators.SecretsSimpleInflator
 import com.android.build.api.instrumentation.AsmClassVisitorFactory
 import com.android.build.api.instrumentation.ClassContext
 import com.android.build.api.instrumentation.ClassData
@@ -16,10 +17,14 @@ abstract class SecretsClassInflatorFactory : AsmClassVisitorFactory<SecretsClass
         classContext: ClassContext,
         nextClassVisitor: ClassVisitor
     ): ClassVisitor {
-        val params = this.parameters.get()
+        val params = parameters.get()
         val secrets = params.secrets.get()
-        val className = parameters.get().className.get()
-        return SecretsNevilleInflator(secrets, className, nextClassVisitor)
+        val className = params.className.get()
+        val method = params.method.get()
+        return when (method) {
+            SecretsHardeningMethod.NONE -> SecretsSimpleInflator(secrets, nextClassVisitor)
+            SecretsHardeningMethod.NEVILLE -> SecretsNevilleInflator(secrets, className, nextClassVisitor)
+        }
     }
 
     override fun isInstrumentable(classData: ClassData): Boolean {
@@ -35,5 +40,8 @@ abstract class SecretsClassInflatorFactory : AsmClassVisitorFactory<SecretsClass
 
         @get:Input
         val inflatableClassName: Property<String>
+
+        @get:Input
+        val method: Property<SecretsHardeningMethod>
     }
 }

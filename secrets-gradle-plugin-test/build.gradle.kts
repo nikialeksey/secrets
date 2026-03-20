@@ -1,3 +1,5 @@
+import com.alexeycode.secrets.SecretsHardeningMethod
+
 plugins {
     alias(libs.plugins.android.application)
     id("com.alexeycode.secrets")
@@ -12,6 +14,7 @@ secrets {
     flavor("development") {
         key("secret3") { "hello, secret dev" }
     }
+    method = SecretsHardeningMethod.NONE
 }
 
 android {

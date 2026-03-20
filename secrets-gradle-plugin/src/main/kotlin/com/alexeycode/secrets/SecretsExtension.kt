@@ -4,10 +4,23 @@ open class SecretsExtension {
     val secretsContainer = SecretsContainer()
     val flavorsSecrets = mutableMapOf<String, SecretsContainer>()
 
+    /**
+     * Secrets hardening method.
+     *
+     * [SecretsHardeningMethod.NEVILLE] by default.
+     */
+    var method: SecretsHardeningMethod = SecretsHardeningMethod.NEVILLE
+
+    /**
+     * Add secret [value] with [key].
+     */
     fun key(name: String, value: () -> String) {
         secretsContainer.key(name, value)
     }
 
+    /**
+     * Add secrets for flavor with [name].
+     */
     fun flavor(name: String, builder: SecretsContainer.() -> Unit) {
         val flavorContainer = flavorsSecrets.getOrPut(name) { SecretsContainer() }
         flavorContainer.builder()
