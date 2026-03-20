@@ -25,21 +25,23 @@ secrets {
 }
 ```
 
-Then secrets are available in the code by 
-reference (class will be generated in your default package):
+Then secrets are available in the code by method call 
+(`Secrets` class will be generated in your default package):
 ```kotlin
 val secretValue = Secrets.getSecret1()
 ```
+`Secrets` class bytecode does not contain a secret value literal. Instead, it 
+contains some algorithm which will build the value in runtime.
 
 ### Secrets for product flavors
 ```kotlin
 secrets {
     key("commonSecret") { "..." }
     flavor("production") { // will be applied only for specific flavor name
-        key("flavorSecret") { "hello, secret prod" }
+        key("flavorSecret") { "..." }
     }
     flavor("development") {
-        key("flavorSecret") { "hello, secret dev" }
+        key("flavorSecret") { "..." }
     }
 }
 
