@@ -1,4 +1,4 @@
-name: 'Run necessary checks'
+name: 'Build and tests'
 
 on:
   push:

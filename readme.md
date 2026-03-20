@@ -2,6 +2,7 @@
 
 [![Build and tests][build-status-badge]][build-status-link]
 
+[![GitHub License][license-badge]][license-link]
 [![Gradle plugin version][gradle-plugin-badge]][gradle-plugin-link]
 
 Protect API keys (or other secrets) from reverse engineering.
@@ -96,5 +97,7 @@ As an experiment, I created this Gradle plugin.
 
 [build-status-badge]: https://github.com/nikialeksey/secrets/actions/workflows/check.yml/badge.svg
 [build-status-link]: https://github.com/nikialeksey/secrets/actions/workflows/check.yml
+[license-badge]: https://img.shields.io/github/license/nikialeksey/secrets
+[license-link]: https://github.com/nikialeksey/secrets/blob/main/LICENSE
 [gradle-plugin-badge]: https://img.shields.io/gradle-plugin-portal/v/com.alexeycode.secrets
 [gradle-plugin-link]: https://plugins.gradle.org/plugin/com.alexeycode.secrets
