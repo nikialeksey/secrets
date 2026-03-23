@@ -1,7 +1,8 @@
 plugins {
     id("java-gradle-plugin")
     kotlin("jvm") version "2.3.10"
-    id("com.gradle.plugin-publish") version "2.1.0"
+    id("com.gradle.plugin-publish") version "2.1.1"
+    id("me.champeau.jmh") version "0.7.3"
 }
 
 group = "com.alexeycode"
@@ -14,6 +15,14 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.android.gradle)
     testImplementation(libs.smali.dexlib2)
+}
+
+jmh {
+    fork = 0
+    warmup = "2s"
+    warmupIterations = 2
+    timeOnIteration = "2s"
+    zip64 = true
 }
 
 gradlePlugin {

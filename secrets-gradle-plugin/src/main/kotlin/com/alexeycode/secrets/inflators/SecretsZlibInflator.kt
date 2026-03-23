@@ -143,57 +143,143 @@ class SecretsZlibInflator(
 
         mv.visitCode()
 
+        // Inflater inflater = new Inflater();
         mv.visitTypeInsn(Opcodes.NEW, "java/util/zip/Inflater")
         mv.visitInsn(Opcodes.DUP)
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/zip/Inflater", "<init>", "()V", false)
         mv.visitVarInsn(Opcodes.ASTORE, 1)
 
+        val tryStart = Label()
+        val tryEnd = Label()
+        val catchLabel = Label()
+
+        mv.visitLabel(tryStart)
+
+        // inflater.setInput(input)
         mv.visitVarInsn(Opcodes.ALOAD, 1)
         mv.visitVarInsn(Opcodes.ALOAD, 0)
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/zip/Inflater", "setInput", "([B)V", false)
 
+        // ByteArrayOutputStream out = new ByteArrayOutputStream(4096);
         mv.visitTypeInsn(Opcodes.NEW, "java/io/ByteArrayOutputStream")
         mv.visitInsn(Opcodes.DUP)
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/io/ByteArrayOutputStream", "<init>", "()V", false)
+        mv.visitIntInsn(Opcodes.SIPUSH, 1024)
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/io/ByteArrayOutputStream", "<init>", "(I)V", false)
         mv.visitVarInsn(Opcodes.ASTORE, 2)
 
-        mv.visitIntInsn(Opcodes.SIPUSH, 128)
+        // byte[] buffer = new byte[4096];
+        mv.visitIntInsn(Opcodes.SIPUSH, 1024)
         mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_BYTE)
         mv.visitVarInsn(Opcodes.ASTORE, 3)
 
         val loop = Label()
         val end = Label()
+        val write = Label()
 
         mv.visitLabel(loop)
 
+        // if (inflater.finished()) break;
         mv.visitVarInsn(Opcodes.ALOAD, 1)
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/zip/Inflater", "finished", "()Z", false)
         mv.visitJumpInsn(Opcodes.IFNE, end)
 
+        // int count = inflater.inflate(buffer);
         mv.visitVarInsn(Opcodes.ALOAD, 1)
         mv.visitVarInsn(Opcodes.ALOAD, 3)
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/zip/Inflater", "inflate", "([B)I", false)
         mv.visitVarInsn(Opcodes.ISTORE, 4)
 
+        // if (count != 0) -> write
+        mv.visitVarInsn(Opcodes.ILOAD, 4)
+        mv.visitJumpInsn(Opcodes.IFNE, write)
+
+        // if (inflater.needsInput()) break;
+        mv.visitVarInsn(Opcodes.ALOAD, 1)
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/zip/Inflater", "needsInput", "()Z", false)
+        mv.visitJumpInsn(Opcodes.IFNE, end)
+
+        // else error, throw an exception
+        mv.visitTypeInsn(Opcodes.NEW, "java/lang/RuntimeException")
+        mv.visitInsn(Opcodes.DUP)
+        mv.visitLdcInsn("Bad compressed data")
+        mv.visitMethodInsn(
+            Opcodes.INVOKESPECIAL,
+            "java/lang/RuntimeException",
+            "<init>",
+            "(Ljava/lang/String;)V",
+            false
+        )
+        mv.visitInsn(Opcodes.ATHROW)
+
+        // write:
+        mv.visitLabel(write)
+
+        // out.write(buffer, 0, count)
         mv.visitVarInsn(Opcodes.ALOAD, 2)
         mv.visitVarInsn(Opcodes.ALOAD, 3)
         mv.visitInsn(Opcodes.ICONST_0)
         mv.visitVarInsn(Opcodes.ILOAD, 4)
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/ByteArrayOutputStream", "write", "([BII)V", false)
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            "java/io/ByteArrayOutputStream",
+            "write",
+            "([BII)V",
+            false
+        )
 
         mv.visitJumpInsn(Opcodes.GOTO, loop)
 
         mv.visitLabel(end)
 
+        // return new String(out.toByteArray(), UTF_8)
         mv.visitTypeInsn(Opcodes.NEW, "java/lang/String")
         mv.visitInsn(Opcodes.DUP)
         mv.visitVarInsn(Opcodes.ALOAD, 2)
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/ByteArrayOutputStream", "toByteArray", "()[B", false)
-        mv.visitFieldInsn(Opcodes.GETSTATIC, "java/nio/charset/StandardCharsets", "UTF_8", "Ljava/nio/charset/Charset;")
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/String", "<init>", "([BLjava/nio/charset/Charset;)V", false)
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            "java/io/ByteArrayOutputStream",
+            "toByteArray",
+            "()[B",
+            false
+        )
+        mv.visitFieldInsn(
+            Opcodes.GETSTATIC,
+            "java/nio/charset/StandardCharsets",
+            "UTF_8",
+            "Ljava/nio/charset/Charset;"
+        )
+        mv.visitMethodInsn(
+            Opcodes.INVOKESPECIAL,
+            "java/lang/String",
+            "<init>",
+            "([BLjava/nio/charset/Charset;)V",
+            false
+        )
 
+        mv.visitLabel(tryEnd)
+
+        // inflater.end() перед return
+        mv.visitVarInsn(Opcodes.ASTORE, 4)
+        mv.visitVarInsn(Opcodes.ALOAD, 1)
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/zip/Inflater", "end", "()V", false)
+        mv.visitVarInsn(Opcodes.ALOAD, 4)
         mv.visitInsn(Opcodes.ARETURN)
-        mv.visitMaxs(4, 5)
+
+        // catch(Throwable t)
+        mv.visitLabel(catchLabel)
+        mv.visitVarInsn(Opcodes.ASTORE, 4)
+
+        // inflater.end()
+        mv.visitVarInsn(Opcodes.ALOAD, 1)
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/zip/Inflater", "end", "()V", false)
+
+        // throw t
+        mv.visitVarInsn(Opcodes.ALOAD, 4)
+        mv.visitInsn(Opcodes.ATHROW)
+
+        mv.visitTryCatchBlock(tryStart, tryEnd, catchLabel, null)
+
+        mv.visitMaxs(5, 5)
         mv.visitEnd()
     }
 
